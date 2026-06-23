@@ -1,0 +1,252 @@
+﻿@model ArabicNumberGrammar.Mvc.Models.ComposeRequest
+
+@{
+    ViewData["Title"] = "تركيب العدد مع المعدود";
+}
+
+<style>
+    .page-wrap {
+        max-width: 820px;
+        margin: 24px auto;
+        padding: 0 16px;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+        direction: rtl;
+    }
+
+    .card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 6px 22px rgba(0,0,0,.05);
+    }
+
+    .title {
+        margin: 0 0 6px;
+        font-size: 22px;
+    }
+
+    .subtitle {
+        margin: 0 0 16px;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    label {
+        font-weight: 600;
+        font-size: 13px;
+        color: #111827;
+    }
+
+    input, select {
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 14px;
+        outline: none;
+    }
+
+        input:focus, select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+        }
+
+    .hint {
+        color: #6b7280;
+        font-size: 12px;
+    }
+
+    .actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .btn {
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 14px;
+        cursor: pointer;
+        font-weight: 700;
+    }
+
+        .btn:hover {
+            filter: brightness(0.95);
+        }
+
+    .btn-secondary {
+        background: #111827;
+    }
+
+    .alert {
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-top: 14px;
+    }
+
+    .alert-error {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+    }
+
+    .alert-ok {
+        background: #ecfdf5;
+        border: 1px solid #bbf7d0;
+        color: #065f46;
+    }
+
+    .result-phrase {
+        font-size: 20px;
+        margin: 0 0 6px;
+    }
+
+    .result-expl {
+        margin: 0;
+        color: #374151;
+        line-height: 1.6;
+    }
+
+    .val {
+        color: #b91c1c;
+        font-size: 12px;
+    }
+
+    .full {
+        grid-column: 1 / -1;
+    }
+    @@media (max-width: 640px) {
+        .grid
+
+    {
+        grid-template-columns: 1fr;
+    }
+
+    }
+</style>
+
+<div class="page-wrap">
+    <div class="card">
+        <h2 class="title">تركيب العدد مع المعدود</h2>
+        <p class="subtitle">
+            أدخل العدد مع معلومات المعدود (الجنس والإعراب). للأعداد 2 و(3–10) ستظهر حقول إضافية.
+        </p>
+
+        @* ملخص أخطاء الـ Validation *@
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-error">
+                <strong>فيه معلومات ناقصة أو غير صحيحة:</strong>
+                <div style="margin-top:6px;">
+                    @Html.ValidationSummary(excludePropertyErrors: false)
+                </div>
+            </div>
+        }
+
+        <form method="post" autocomplete="off">
+            <div class="grid">
+                <div class="field">
+                    <label for="Number">العدد (1–99)</label>
+                    <input id="Number" type="number" name="Number" min="1" max="99" value="@Model.Number" required />
+                    <div class="val">@Html.ValidationMessage(nameof(Model.Number))</div>
+                </div>
+
+                <div class="field">
+                    <label for="Gender">جنس المعدود</label>
+                    <select id="Gender" name="Gender">
+                        <option value="Masculine" selected="@(Model.Gender == ArabicNumberGrammar.Mvc.Models.NounGender.Masculine)">مذكر</option>
+                        <option value="Feminine" selected="@(Model.Gender == ArabicNumberGrammar.Mvc.Models.NounGender.Feminine)">مؤنث</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="Case">الإعراب</label>
+                    <select id="Case" name="Case">
+                        <option value="Nominative" selected="@(Model.Case == ArabicNumberGrammar.Mvc.Models.GrammaticalCase.Nominative)">رفع</option>
+                        <option value="Accusative" selected="@(Model.Case == ArabicNumberGrammar.Mvc.Models.GrammaticalCase.Accusative)">نصب</option>
+                        <option value="Genitive" selected="@(Model.Case == ArabicNumberGrammar.Mvc.Models.GrammaticalCase.Genitive)">جر</option>
+                    </select>
+                    <span class="hint">يؤثر على: 12 / 22 / العقود (عشرون/عشرين...)</span>
+                </div>
+
+                <div class="field">
+                    <label for="NounSingular">المفرد</label>
+                    <input id="NounSingular" name="NounSingular" value="@Model.NounSingular" placeholder="كتاب / سيارة" required />
+                    <div class="val">@Html.ValidationMessage(nameof(Model.NounSingular))</div>
+                </div>
+
+                <div class="field" id="dualField">
+                    <label for="NounDual">المثنى (للعدد 2)</label>
+                    <input id="NounDual" name="NounDual" value="@Model.NounDual" placeholder="كتابان / سيارتان" />
+                    <span class="hint">لن نولّد المثنى تلقائيًا لتفادي أخطاء صرفية.</span>
+                    <div class="val">@Html.ValidationMessage(nameof(Model.NounDual))</div>
+                </div>
+
+                <div class="field" id="pluralField">
+                    <label for="NounPlural">الجمع (للأعداد 3–10)</label>
+                    <input id="NounPlural" name="NounPlural" value="@Model.NounPlural" placeholder="كتب / سيارات" />
+                    <span class="hint">لن نولّد الجمع تلقائيًا لتفادي أخطاء صرفية.</span>
+                    <div class="val">@Html.ValidationMessage(nameof(Model.NounPlural))</div>
+                </div>
+
+                <div class="actions full">
+                    <button class="btn" type="submit">توليد</button>
+                    <button class="btn btn-secondary" type="reset" onclick="setTimeout(updateExtraFields, 0)">مسح</button>
+                    <span class="hint">جرّب: 12 (مذكر/رفع) أو 22 (مؤنث/نصب)</span>
+                </div>
+            </div>
+        </form>
+
+        @* خطأ عام من السيرفس (غير متوقع) *@
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-error">
+                <strong>خطأ:</strong> @ViewBag.Error
+            </div>
+        }
+
+        @* النتيجة *@
+        @if (ViewBag.Result != null)
+        {
+            <div class="alert alert-ok">
+                <div class="result-phrase"><strong>@ViewBag.Result.Phrase</strong></div>
+                <p class="result-expl">@ViewBag.Result.Explanation</p>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    function updateExtraFields() {
+        var n = parseInt(document.getElementById('Number').value || '0', 10);
+
+        var dual = document.getElementById('dualField');
+        var plural = document.getElementById('pluralField');
+
+        // show/hide
+        dual.style.display = (n === 2) ? 'flex' : 'none';
+        plural.style.display = (n >= 3 && n <= 10) ? 'flex' : 'none';
+
+        // optional: clear hidden fields to reduce confusion
+        if (n !== 2) document.getElementById('NounDual').value = '';
+        if (!(n >= 3 && n <= 10)) document.getElementById('NounPlural').value = '';
+    }
+
+    document.getElementById('Number').addEventListener('input', updateExtraFields);
+    document.addEventListener('DOMContentLoaded', updateExtraFields);
+</script>
