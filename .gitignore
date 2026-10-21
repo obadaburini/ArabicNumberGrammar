@@ -1,0 +1,6 @@
+# Local .NET and editor outputs (existing tracked outputs are retained)
+bin/
+obj/
+.vs/
+*.user
+*.suo
